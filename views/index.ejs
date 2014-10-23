@@ -23,12 +23,12 @@
 			<span ng-click="incrementLikes(post)">^</span>
 			<a href="{{post.link}}">{{post.title}} - likes: {{post.likes}}</a>
 			<span>
-  			<a href="#/posts/{{$index}}">Comments</a>
+  			<a href="#/posts/{{post._id}}">Comments</a>
 			</span>
 		</div>
 	</script>
 
-	<script type="text/ng-template" id="/posts.html">
+	<script type="text/ng-template" id="/post.html">
 		<h1>{{post.title}}</h1>
 		<h3>Add a new comment</h3>
 		<form ng-submit="addComment()">

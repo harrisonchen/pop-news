@@ -15,10 +15,15 @@ angular.module('popNews', ['ui.router'])
   			}]
 			}
 		})
-		.state('posts', {
+		.state('post', {
 			url: '/posts/{id}',
-			templateUrl: '/posts.html',
-			controller: 'PostsCtrl'
+			templateUrl: '/post.html',
+			controller: 'PostCtrl',
+			resolve: {
+				Post: ['$stateParams', 'Posts', function($stateParams, Posts){
+					return Posts.get($stateParams.id);
+				}]
+			}
 		});
 
 		$urlRouterProvider.otherwise('home');
@@ -27,6 +32,12 @@ angular.module('popNews', ['ui.router'])
 .factory('Posts', ['$http', function($http){
  	var o = {
 		posts: []
+	};
+
+	o.get = function(id){
+		return $http.get('/posts/' + id).then(function(res){
+			return res.data;
+		});
 	};
 
 	o.getAll = function(){
@@ -50,23 +61,42 @@ angular.module('popNews', ['ui.router'])
   	});
 	};
 
+	o.addComment = function(id, comment) {
+	  return $http.post('/posts/' + id + '/comments', comment);
+	};
+
+	o.likeComment = function(post, comment) {
+	  return $http.put('/posts/' + post._id + '/comments/'+ comment._id + '/like')
+					 .success(function(data){
+					   comment.likes += 1;
+				   });
+	};
+
 	return o;
 }])
-.controller('PostsCtrl', ['$scope', '$stateParams', 'Posts', 
-	function($scope, $stateParams, Posts){
+.controller('PostCtrl', ['$scope', 'Posts', 'Post', 
+	function($scope, Posts, Post){
 
-	$scope.post = Posts.posts[$stateParams.id];
+	$scope.post = Post;
 	$scope.body = '';
 
 	$scope.addComment = function(){
 		if($scope.body === '') { return; }
-		$scope.post.comments.push({
+
+		Posts.addComment(Post._id, {
 			author: 'user',
 			body: $scope.body,
 			likes: 0
-		});
+		})
+		.success(function(comment){
+    	$scope.post.comments.push(comment);
+  	});
 
 		$scope.body = '';
+	}
+
+	$scope.incrementLikes = function(comment){
+		Posts.likeComment(Post, comment);
 	}
 
 }])
